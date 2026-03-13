@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Game Index</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#111;
+    color:white;
+    padding:40px;
+}
+
+h1{
+    text-align:center;
+}
+
+h2{
+    margin-top:30px;
+    border-bottom:1px solid #444;
+}
+
+a{
+    display:block;
+    padding:4px 0;
+    color:#4da6ff;
+    text-decoration:none;
+}
+
+a:hover{
+    text-decoration:underline;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Pwnmaster99's games</h1>
+<div id="list">Loading...</div>
+
+<script>
+
+const username = "pwnmaster99";
+const repo = username + ".github.io";
+
+async function loadGames(){
+
+    const url = `https://api.github.com/repos/${username}/${repo}/git/trees/main?recursive=1`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    const groups = {};
+
+    data.tree.forEach(file => {
+
+        if(file.path.endsWith("index.html")){
+
+            let folder = file.path.replace("/index.html","");
+
+            if(folder === "index.html") return;
+
+            const parts = folder.split("/");
+            const parent = parts.length > 1 ? parts[0] : "Uncatagorized";
+            const name = parts[parts.length-1];
+
+            if(!groups[parent]) groups[parent] = [];
+
+            groups[parent].push({
+                name:name,
+                path:folder
+            });
+        }
+
+    });
+
+    const container = document.getElementById("list");
+    container.innerHTML = "";
+
+    Object.keys(groups).sort().forEach(parent => {
+
+        const section = document.createElement("div");
+
+        const title = document.createElement("h2");
+        title.textContent = parent;
+        section.appendChild(title);
+
+        groups[parent].sort((a,b)=>a.name.localeCompare(b.name));
+
+        groups[parent].forEach(game => {
+
+            const link = document.createElement("a");
+            link.href = "/" + game.path;
+            link.textContent = game.name;
+
+            section.appendChild(link);
+
+        });
+
+        container.appendChild(section);
+
+    });
+
+}
+
+loadGames();
+
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+}
+</script>
+
+
+</body>
+</html>
