@@ -16,9 +16,33 @@ h1{
     text-align:center;
 }
 
-h2{
+.folder{
     margin-top:30px;
+}
+
+.folderTitle{
+    font-size:20px;
     border-bottom:1px solid #444;
+    cursor:pointer;
+    user-select:none;
+}
+
+.subTitle{
+    margin-top:15px;
+    margin-left:20px;
+    font-size:16px;
+    border-bottom:1px solid #333;
+    padding-bottom:3px;
+    cursor:pointer;
+    user-select:none;
+}
+
+.folderContent{
+    margin-top:5px;
+}
+
+.subContent{
+    margin-left:20px;
 }
 
 a{
@@ -26,10 +50,20 @@ a{
     padding:4px 0;
     color:#4da6ff;
     text-decoration:none;
+    font-size:16px;
+}
+
+.sub{
+    margin-left:20px;
+    font-size:14px;
 }
 
 a:hover{
     text-decoration:underline;
+}
+
+.hidden{
+    display:none;
 }
 </style>
 </head>
@@ -51,25 +85,50 @@ async function loadGames(){
     const data = await response.json();
 
     const groups = {};
+    const uncategorized = [];
 
     data.tree.forEach(file => {
 
         if(file.path.endsWith("index.html")){
 
             let folder = file.path.replace("/index.html","");
-
-            if(folder === "index.html") return;
+            if(folder === "") return;
 
             const parts = folder.split("/");
-            const parent = parts.length > 1 ? parts[0] : "Uncatagorized";
-            const name = parts[parts.length-1];
 
-            if(!groups[parent]) groups[parent] = [];
+            if(parts.length === 1){
+                uncategorized.push({
+                    name: parts[0],
+                    path: folder
+                });
+                return;
+            }
 
-            groups[parent].push({
-                name:name,
-                path:folder
-            });
+            const parent = parts[0];
+
+            if(parts.length === 2){
+
+                if(!groups[parent]) groups[parent] = {games:[], subs:{}};
+
+                groups[parent].games.push({
+                    name: parts[1],
+                    path: folder
+                });
+
+            }else{
+
+                const sub = parts[1];
+
+                if(!groups[parent]) groups[parent] = {games:[], subs:{}};
+                if(!groups[parent].subs[sub]) groups[parent].subs[sub] = [];
+
+                groups[parent].subs[sub].push({
+                    name: parts[parts.length-1],
+                    path: folder
+                });
+
+            }
+
         }
 
     });
@@ -77,23 +136,105 @@ async function loadGames(){
     const container = document.getElementById("list");
     container.innerHTML = "";
 
-    Object.keys(groups).sort().forEach(parent => {
+    function makeFolder(titleText, contentBuilder){
 
-        const section = document.createElement("div");
+        const wrapper = document.createElement("div");
+        wrapper.className = "folder";
 
-        const title = document.createElement("h2");
-        title.textContent = parent;
-        section.appendChild(title);
+        const title = document.createElement("div");
+        title.className = "folderTitle";
+        title.textContent = "▼ " + titleText;
 
-        groups[parent].sort((a,b)=>a.name.localeCompare(b.name));
+        const content = document.createElement("div");
+        content.className = "folderContent";
 
-        groups[parent].forEach(game => {
+        title.onclick = ()=>{
+            content.classList.toggle("hidden");
+            title.textContent = (content.classList.contains("hidden")?"► ":"▼ ") + titleText;
+        };
 
-            const link = document.createElement("a");
-            link.href = "/" + game.path;
-            link.textContent = game.name;
+        contentBuilder(content);
 
-            section.appendChild(link);
+        wrapper.appendChild(title);
+        wrapper.appendChild(content);
+
+        return wrapper;
+    }
+
+    function makeSub(titleText, contentBuilder){
+
+        const title = document.createElement("div");
+        title.className = "subTitle";
+        title.textContent = "▼ " + titleText;
+
+        const content = document.createElement("div");
+        content.className = "subContent";
+
+        title.onclick = ()=>{
+            content.classList.toggle("hidden");
+            title.textContent = (content.classList.contains("hidden")?"► ":"▼ ") + titleText;
+        };
+
+        contentBuilder(content);
+
+        const wrapper = document.createElement("div");
+        wrapper.appendChild(title);
+        wrapper.appendChild(content);
+
+        return wrapper;
+    }
+
+    if(uncategorized.length > 0){
+
+        const section = makeFolder("Uncategorized", (content)=>{
+
+            uncategorized.sort((a,b)=>a.name.localeCompare(b.name));
+
+            uncategorized.forEach(game=>{
+                const link = document.createElement("a");
+                link.href = "/" + game.path;
+                link.textContent = game.name;
+                content.appendChild(link);
+            });
+
+        });
+
+        container.appendChild(section);
+
+    }
+
+    Object.keys(groups).sort().forEach(parent=>{
+
+        const section = makeFolder(parent, (content)=>{
+
+            groups[parent].games.sort((a,b)=>a.name.localeCompare(b.name));
+
+            groups[parent].games.forEach(game=>{
+                const link = document.createElement("a");
+                link.href = "/" + game.path;
+                link.textContent = game.name;
+                content.appendChild(link);
+            });
+
+            Object.keys(groups[parent].subs).sort().forEach(sub=>{
+
+                const subSection = makeSub(sub,(subContent)=>{
+
+                    groups[parent].subs[sub].sort((a,b)=>a.name.localeCompare(b.name));
+
+                    groups[parent].subs[sub].forEach(game=>{
+                        const link = document.createElement("a");
+                        link.href = "/" + game.path;
+                        link.textContent = game.name;
+                        link.classList.add("sub");
+                        subContent.appendChild(link);
+                    });
+
+                });
+
+                content.appendChild(subSection);
+
+            });
 
         });
 
@@ -112,7 +253,6 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js');
 }
 </script>
-
 
 </body>
 </html>
