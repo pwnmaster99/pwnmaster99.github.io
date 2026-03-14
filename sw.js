@@ -2,7 +2,6 @@ self.addEventListener("fetch", event => {
     event.respondWith((async () => {
 
         const response = await fetch(event.request);
-
         const type = response.headers.get("content-type") || "";
 
         if (!type.includes("text/html")) {
@@ -30,14 +29,20 @@ overlay.style.left = "0";
 overlay.style.width = "100vw";
 overlay.style.height = "100vh";
 overlay.style.background = "black";
-overlay.style.zIndex = "9999999";
+overlay.style.zIndex = "999999999";
 overlay.style.display = "none";
+overlay.style.pointerEvents = "none";
 
 const image = document.createElement("img");
 image.src = img;
+image.style.position = "absolute";
+image.style.top = "0";
+image.style.left = "0";
 image.style.width = "100%";
 image.style.height = "100%";
-image.style.objectFit = "contain";
+image.style.objectFit = "cover";   // fills entire viewport
+image.style.userSelect = "none";
+image.style.pointerEvents = "none";
 
 overlay.appendChild(image);
 
