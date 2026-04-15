@@ -1,6 +1,6 @@
 -- moonhads epik btp script X3
 -- Version 3.0.0
-
+-- Modified to work with a bot hehehehaw
 
 
 --UPDATES:
@@ -41,6 +41,13 @@ local MapBtpDone = false
 local SafeZoneBtpDone = false
 local HasTouchstone = false
 
+for _, v in ipairs(workspace:GetDescendants()) do
+	if v:IsA("BasePart") and v.Position == Vector3.new(0, -7000, 0) then
+		print("Done!!!!")
+		break
+	end
+end
+
 for i, Tracks in ipairs(Animator:GetPlayingAnimationTracks()) do
 	Tracks:Stop()
 end
@@ -61,14 +68,14 @@ RunService.Stepped:Connect(function()
 	end
 end)
 
-HumanoidRootPart.CFrame = CFrame.new(0, 98, 0) * CFrame.Angles(0, 0, 0)
+HumanoidRootPart.CFrame = CFrame.new(0, 98, 0)
 
 local Sword = Backpack:FindFirstChild("Sword")
 
-if Sword then -- step 1: start up
+if Sword then
 	Sword.Enabled = false
 	local SwordHandle = Sword:WaitForChild("Handle")
-	Sword.Grip = CFrame.new(-86, 75.6, 99.5) * CFrame.Angles(math.rad(90), 0, 0) -- peak
+	Sword.Grip = CFrame.new(-86, 75.6, 99.5) * CFrame.Angles(math.rad(90), 0, 0)
 
 	task.wait(0.1)
 	Sword.Parent = Character
@@ -83,7 +90,7 @@ if Sword then -- step 1: start up
 		Wood.CanCollide = false
 	end
 
-	workspace.ChildRemoved:Connect(function(Child) -- step 2: wait for regen
+	workspace.ChildRemoved:Connect(function(Child)
 		if MapBtpDone and SafeZoneBtpDone then return end
 		if Child:IsA("Model") and Child.Name == "Regen" then
 			local DeathPlateTrigger = workspace:WaitForChild("Regen"):WaitForChild("DeathPlateTrigger")
@@ -105,7 +112,6 @@ if Sword then -- step 1: start up
 									TouchstoneHandle.CFrame = HumanoidRootPart.CFrame
 									task.wait(0.01)
 								else
-									error("Touchstone Taken!!!! FAHHHH (reset the script)")
 									return
 								end
 							until Character:FindFirstChild("Touchstone")
@@ -130,7 +136,7 @@ if Sword then -- step 1: start up
 						repeat
 							task.wait(0.01)
 							Sword.Parent = Character
-							Touchhstone.Parent = Character -- step 3: btp the map >:3
+							Touchhstone.Parent = Character
 						until Touchhstone.Parent == Character and Sword.Parent == Character
 
 						task.delay(0.7, function()
@@ -139,7 +145,7 @@ if Sword then -- step 1: start up
 							
 							task.wait(0.5)
 							
-							Sword.Grip = CFrame.new(0, -4.5, 0) * CFrame.Angles(math.rad(-90), 0, 0) -- so you wont die while btp the safeplate
+							Sword.Grip = CFrame.new(0, -4.5, 0) * CFrame.Angles(math.rad(-90), 0, 0)
 							Touchhstone.Parent = Backpack
 						end)
 					else
@@ -153,19 +159,20 @@ if Sword then -- step 1: start up
 							repeat
 								task.wait(0.01)
 								Sword.Parent = Character
-								BtpTouchstone.Parent = Character -- step 4: btp the safeplate >:3
+								BtpTouchstone.Parent = Character
 							until BtpTouchstone.Parent == Character and Sword.Parent == Character
 							BtpTouchstone:Activate()
 
 							SafeZoneBtpDone = true
 
-							task.delay(2, function() -- step 5: clean up
+							task.delay(2, function()
 								Animate.Enabled = true
-								HumanoidRootPart.CFrame = CFrame.new(0, 300, 0) * CFrame.Angles(0, 0, 0)
+								HumanoidRootPart.CFrame = CFrame.new(0, 300, 0)
 								task.wait(0.3)
-								--Sword.Grip = CFrame.new(0, 0, -1.5) * CFrame.Angles(0, math.rad(90), math.rad(90))
 								Sword.Parent = Backpack
 								BtpTouchstone.Parent = Backpack
+								
+								print("Done!!!!")
 							end)
 						end
 					end
@@ -174,5 +181,5 @@ if Sword then -- step 1: start up
 		end
 	end)
 else
-	error("Sword is not found in backpack!!! FAHHHHH (reset the script)")
+	error("Sword is not found in backpack!!!")
 end
